@@ -6,102 +6,98 @@
 /*   By: kayoshid <kayoshid@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/24 13:52:34 by kayoshid          #+#    #+#             */
-/*   Updated: 2026/10/24 13:52:58 by kayoshid         ###   ########.fr       */
+/*   Updated: 2026/10/24 20:08:19 by kayoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-size_t	gnl_length(const char *text, char stop)
+char	*gnl_clear(t_stash *stash)
 {
-	size_t	length;
-
-	length = 0;
-	while (text && text[length] && text[length] != stop)
-		length++;
-	return (length);
-}
-
-char	*gnl_clear(char **stash)
-{
-	free(*stash);
-	*stash = NULL;
+	free(stash->data);
+	stash->data = NULL;
+	stash->length = 0;
+	stash->capacity = 0;
+	stash->scan = 0;
 	return (NULL);
 }
 
-char	*gnl_append(char *stash, const char *buffer)
+void	gnl_copy(char *dest, const char *src, size_t length)
 {
-	char	*joined;
-	size_t	length;
 	size_t	i;
 
-	length = gnl_length(stash, '\0');
-	joined = malloc(length + gnl_length(buffer, '\0') + 1);
-	if (!joined)
-		return (gnl_clear(&stash));
 	i = 0;
 	while (i < length)
 	{
-		joined[i] = stash[i];
+		dest[i] = src[i];
 		i++;
 	}
-	i = 0;
-	while (buffer[i])
-	{
-		joined[length + i] = buffer[i];
-		i++;
-	}
-	joined[length + i] = '\0';
-	free(stash);
-	return (joined);
 }
 
-char	*gnl_read(int fd, char *stash, char *buffer)
+int	gnl_reserve(t_stash *stash, size_t extra)
+{
+	char	*data;
+	size_t	needed;
+	size_t	capacity;
+
+	if (extra > (size_t)-1 - stash->length - 1)
+		return (0);
+	needed = stash->length + extra + 1;
+	if (needed <= stash->capacity)
+		return (1);
+	capacity = needed;
+	if (stash->capacity <= (size_t)-1 / 2
+		&& stash->capacity * 2 > needed)
+		capacity = stash->capacity * 2;
+	data = malloc(capacity);
+	if (!data)
+		return (0);
+	gnl_copy(data, stash->data, stash->length);
+	free(stash->data);
+	stash->data = data;
+	stash->capacity = capacity;
+	return (1);
+}
+
+int	gnl_read(int fd, t_stash *stash)
 {
 	ssize_t	bytes_read;
 
 	if (BUFFER_SIZE <= 0)
-		return (gnl_clear(&stash));
-	while (!stash || stash[gnl_length(stash, '\n')] != '\n')
+		return (0);
+	while (1)
 	{
-		bytes_read = read(fd, buffer, (size_t)BUFFER_SIZE);
+		while (stash->scan < stash->length
+			&& stash->data[stash->scan] != '\n')
+			stash->scan++;
+		if (stash->scan < stash->length)
+			return (1);
+		if (!gnl_reserve(stash, (size_t)BUFFER_SIZE))
+			return (0);
+		bytes_read = read(fd, stash->data + stash->length, (size_t)BUFFER_SIZE);
 		if (bytes_read < 0)
-			return (gnl_clear(&stash));
+			return (0);
 		if (bytes_read == 0)
-			break ;
-		buffer[bytes_read] = '\0';
-		stash = gnl_append(stash, buffer);
-		if (!stash)
-			return (NULL);
+			return (1);
+		stash->length += bytes_read;
 	}
-	return (stash);
 }
 
-char	*gnl_take(char *stash)
+char	*gnl_take(t_stash *stash)
 {
 	char	*line;
 	size_t	length;
-	size_t	i;
 
-	length = gnl_length(stash, '\n');
-	if (stash[length] == '\n')
+	length = stash->scan;
+	if (length < stash->length)
 		length++;
 	line = malloc(length + 1);
 	if (!line)
 		return (NULL);
-	i = 0;
-	while (i < length)
-	{
-		line[i] = stash[i];
-		i++;
-	}
-	line[i] = '\0';
-	i = 0;
-	while (stash[length + i])
-	{
-		stash[i] = stash[length + i];
-		i++;
-	}
-	stash[i] = '\0';
+	gnl_copy(line, stash->data, length);
+	line[length] = '\0';
+	stash->length -= length;
+	gnl_copy(stash->data, stash->data + length, stash->length);
+	stash->scan = 0;
 	return (line);
 }
