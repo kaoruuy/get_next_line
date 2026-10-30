@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: kayoshid <kayoshid@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/10/24 13:52:34 by kayoshid          #+#    #+#             */
-/*   Updated: 2026/10/24 20:28:29 by kayoshid         ###   ########.fr       */
+/*   Created: 2026/10/30 23:17:06 by kayoshid          #+#    #+#             */
+/*   Updated: 2026/10/31 01:51:49 by kayoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,15 @@
 #  define BUFFER_SIZE 42
 # endif
 
-typedef struct s_stash
-{
-	char	*data;
-	size_t	length;
-	size_t	capacity;
-	size_t	scan;
-}	t_stash;
+char		*get_next_line(int fd);
+char		*read_to_str(int fd, char *str);
+char		*strcut_fr(char *str);
+char		*strcut_lst(char *str);
 
-char	*get_next_line(int fd);
-char	*gnl_clear(t_stash *stash);
-void	gnl_copy(char *dest, const char *src, size_t length);
-int		gnl_reserve(t_stash *stash, size_t extra);
-int		gnl_read(int fd, t_stash *stash);
-char	*gnl_take(t_stash *stash);
+size_t		ft_strlen(const char *str);
+char		*ft_strchr(const char *s, int c);
+int			is_new_line(char *str);
+char		*ft_strdup(const char *s);
+char		*ft_strjoin(char const *s1, char const *s2);
 
 #endif
