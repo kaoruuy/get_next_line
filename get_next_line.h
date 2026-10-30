@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: kayoshid <kayoshid@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/10/24 13:52:34 by kayoshid          #+#    #+#             */
-/*   Updated: 2026/10/30 17:51:30 by kayoshid         ###   ########.fr       */
+/*   Created: 2026/10/30 23:17:06 by kayoshid          #+#    #+#             */
+/*   Updated: 2026/10/31 01:51:49 by kayoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,15 @@
 #  define BUFFER_SIZE 42
 # endif
 
-char	*get_next_line(int fd);
-char	*gnl_clear(char **buffer, size_t *buffer_length,
-			size_t *buffer_capacity);
-void	gnl_copy(char *destination, const char *source, size_t byte_count);
-int		gnl_reserve(char **buffer, size_t buffer_length,
-			size_t *buffer_capacity, size_t read_size);
-int		gnl_read(int fd, char **buffer, size_t *buffer_length,
-			size_t *buffer_capacity);
-char	*gnl_take(char *buffer, size_t *buffer_length);
+char		*get_next_line(int fd);
+char		*read_to_str(int fd, char *str);
+char		*strcut_fr(char *str);
+char		*strcut_lst(char *str);
+
+size_t		ft_strlen(const char *str);
+char		*ft_strchr(const char *s, int c);
+int			is_new_line(char *str);
+char		*ft_strdup(const char *s);
+char		*ft_strjoin(char const *s1, char const *s2);
 
 #endif
