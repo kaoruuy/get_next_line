@@ -6,7 +6,7 @@
 /*   By: kayoshid <kayoshid@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/24 13:52:34 by kayoshid          #+#    #+#             */
-/*   Updated: 2026/10/24 20:08:19 by kayoshid         ###   ########.fr       */
+/*   Updated: 2026/10/30 17:51:30 by kayoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,14 @@
 #  define BUFFER_SIZE 42
 # endif
 
-typedef struct s_stash
-{
-	char	*data;
-	size_t	length;
-	size_t	capacity;
-	size_t	scan;
-}	t_stash;
-
 char	*get_next_line(int fd);
-char	*gnl_clear(t_stash *stash);
-void	gnl_copy(char *dest, const char *src, size_t length);
-int		gnl_reserve(t_stash *stash, size_t extra);
-int		gnl_read(int fd, t_stash *stash);
-char	*gnl_take(t_stash *stash);
+char	*gnl_clear(char **buffer, size_t *buffer_length,
+			size_t *buffer_capacity);
+void	gnl_copy(char *destination, const char *source, size_t byte_count);
+int		gnl_reserve(char **buffer, size_t buffer_length,
+			size_t *buffer_capacity, size_t read_size);
+int		gnl_read(int fd, char **buffer, size_t *buffer_length,
+			size_t *buffer_capacity);
+char	*gnl_take(char *buffer, size_t *buffer_length);
 
 #endif

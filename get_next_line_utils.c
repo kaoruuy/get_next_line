@@ -6,98 +6,102 @@
 /*   By: kayoshid <kayoshid@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/24 13:52:34 by kayoshid          #+#    #+#             */
-/*   Updated: 2026/10/24 20:08:19 by kayoshid         ###   ########.fr       */
+/*   Updated: 2026/10/30 17:51:30 by kayoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*gnl_clear(t_stash *stash)
+char	*gnl_clear(char **buffer, size_t *buffer_length,
+			size_t *buffer_capacity)
 {
-	free(stash->data);
-	stash->data = NULL;
-	stash->length = 0;
-	stash->capacity = 0;
-	stash->scan = 0;
+	free(*buffer);
+	*buffer = NULL;
+	*buffer_length = 0;
+	*buffer_capacity = 0;
 	return (NULL);
 }
 
-void	gnl_copy(char *dest, const char *src, size_t length)
+void	gnl_copy(char *destination, const char *source, size_t byte_count)
 {
-	size_t	i;
+	size_t	index;
 
-	i = 0;
-	while (i < length)
+	index = 0;
+	while (index < byte_count)
 	{
-		dest[i] = src[i];
-		i++;
+		destination[index] = source[index];
+		index++;
 	}
 }
 
-int	gnl_reserve(t_stash *stash, size_t extra)
+int	gnl_reserve(char **buffer, size_t buffer_length,
+		size_t *buffer_capacity, size_t read_size)
 {
-	char	*data;
-	size_t	needed;
-	size_t	capacity;
+	char	*new_buffer;
+	size_t	required_capacity;
+	size_t	new_capacity;
 
-	if (extra > (size_t)-1 - stash->length - 1)
+	if (read_size > (size_t)-1 - buffer_length - 1)
 		return (0);
-	needed = stash->length + extra + 1;
-	if (needed <= stash->capacity)
+	required_capacity = buffer_length + read_size + 1;
+	if (required_capacity <= *buffer_capacity)
 		return (1);
-	capacity = needed;
-	if (stash->capacity <= (size_t)-1 / 2
-		&& stash->capacity * 2 > needed)
-		capacity = stash->capacity * 2;
-	data = malloc(capacity);
-	if (!data)
+	new_capacity = required_capacity;
+	if (*buffer_capacity <= (size_t)-1 / 2
+		&& *buffer_capacity * 2 > required_capacity)
+		new_capacity = *buffer_capacity * 2;
+	new_buffer = malloc(new_capacity);
+	if (!new_buffer)
 		return (0);
-	gnl_copy(data, stash->data, stash->length);
-	free(stash->data);
-	stash->data = data;
-	stash->capacity = capacity;
+	gnl_copy(new_buffer, *buffer, buffer_length);
+	free(*buffer);
+	*buffer = new_buffer;
+	*buffer_capacity = new_capacity;
 	return (1);
 }
 
-int	gnl_read(int fd, t_stash *stash)
+int	gnl_read(int fd, char **buffer, size_t *buffer_length,
+		size_t *buffer_capacity)
 {
 	ssize_t	bytes_read;
+	size_t	search_pos;
 
 	if (BUFFER_SIZE <= 0)
 		return (0);
+	search_pos = 0;
 	while (1)
 	{
-		while (stash->scan < stash->length
-			&& stash->data[stash->scan] != '\n')
-			stash->scan++;
-		if (stash->scan < stash->length)
+		while (search_pos < *buffer_length && (*buffer)[search_pos] != '\n')
+			search_pos++;
+		if (search_pos < *buffer_length)
 			return (1);
-		if (!gnl_reserve(stash, (size_t)BUFFER_SIZE))
+		if (!gnl_reserve(buffer, *buffer_length, buffer_capacity, BUFFER_SIZE))
 			return (0);
-		bytes_read = read(fd, stash->data + stash->length, (size_t)BUFFER_SIZE);
+		bytes_read = read(fd, *buffer + *buffer_length, BUFFER_SIZE);
 		if (bytes_read < 0)
 			return (0);
 		if (bytes_read == 0)
 			return (1);
-		stash->length += bytes_read;
+		*buffer_length += bytes_read;
 	}
 }
 
-char	*gnl_take(t_stash *stash)
+char	*gnl_take(char *buffer, size_t *buffer_length)
 {
 	char	*line;
-	size_t	length;
+	size_t	line_length;
 
-	length = stash->scan;
-	if (length < stash->length)
-		length++;
-	line = malloc(length + 1);
+	line_length = 0;
+	while (line_length < *buffer_length && buffer[line_length] != '\n')
+		line_length++;
+	if (line_length < *buffer_length)
+		line_length++;
+	line = malloc(line_length + 1);
 	if (!line)
 		return (NULL);
-	gnl_copy(line, stash->data, length);
-	line[length] = '\0';
-	stash->length -= length;
-	gnl_copy(stash->data, stash->data + length, stash->length);
-	stash->scan = 0;
+	gnl_copy(line, buffer, line_length);
+	line[line_length] = '\0';
+	*buffer_length -= line_length;
+	gnl_copy(buffer, buffer + line_length, *buffer_length);
 	return (line);
 }
