@@ -9,17 +9,11 @@ EOFで返す文字がない場合や読み取りエラーの場合は `NULL` を
 
 ## Instructions
 
-同梱の動作確認用 `main.c` とコンパイルします。
+動作確認用 `main.c` とコンパイルします。
 
 ```sh
 cc -Wall -Wextra -Werror -D BUFFER_SIZE=42 main.c get_next_line.c get_next_line_utils.c -o gnl
 ./gnl sample.txt
-```
-
-引数なしなら標準入力を読み取ります。`main.c` は各行に番号を付けて表示します。
-
-```sh
-printf 'first\nsecond\n' | ./gnl
 ```
 
 `BUFFER_SIZE` は1回の `read()` で読み取る最大バイト数で、既定値は42です。
@@ -29,7 +23,6 @@ printf 'first\nsecond\n' | ./gnl
 返された行は使用後に `free()` し、`NULL` が返るまで呼び出します。
 同じ入力をEOFまで読み切ってから別の入力へ切り替えてください。
 途中で呼び出しをやめると、次回用の文字列が内部に残る場合があります。
-
 ## Algorithm
 
 1. `get_next_line()` は `fd` と `BUFFER_SIZE` を確認し、
@@ -44,7 +37,6 @@ printf 'first\nsecond\n' | ./gnl
 5. `get_next_line()` は切り出した行を返します。
    EOFで返す文字がなければ保存領域を解放し、`str` を `NULL` に戻します。
 
-読み取りと行の切り出しを分け、メモリの用途を追いやすくしています。
 文字列を連結してから1行と残りに分ける単純な構成です。
 読み足すたびに全文を検索・コピーするため、長い行を小さな `BUFFER_SIZE` で読むと処理が遅くなります。
 
@@ -70,10 +62,9 @@ testerには `gcc`、`clang++`、`make`、Linuxでは `valgrind` が必要です
 
 - `get_next_line.pdf`（Version 14.3）：課題仕様。
 - 英語・日本語のNorm（Version 4.1）：コーディング規約。
-- `man 2 read`、`man 2 open`、`man 2 close`：ファイル操作。
-- `man 3 malloc`、`man 3 free`：メモリ管理。
-- `gnlTester/README.md`：testerの使い方。
+- https://github.com/Tripouille/gnlTester
 
 ## AIの使用
 
-AI（Codex）は、課題・Normの確認、実装・修正案の作成、動作検証、READMEの作成補助に使用しました。
+課題・Normの確認、READMEの作成補助に使用しました。
+
