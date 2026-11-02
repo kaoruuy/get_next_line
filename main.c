@@ -28,7 +28,7 @@ int	main(int argc, char **argv)
 	// get_next_line が NULL を返すまでループ
 	while ((line = get_next_line(fd)) != NULL)
 	{
-		printf("[%d]: %s", line_num++, line);
+		printf("[%d]: %s\n", line_num++, line);
 		free(line); // 呼び出し側で free
 	}
 
